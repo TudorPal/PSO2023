@@ -12,7 +12,7 @@
 use strict;
 use warnings;
 
-# CheckFile
+# CheckFile blbalbal
 #
 # Checks the result of the specified test (1st parameter) by comparing the generated .result file with the
 # expected .test file. Returns 1 if the test succeeded and 0 if the test failed. Also, an .outcome file will be
