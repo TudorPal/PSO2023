@@ -36,6 +36,11 @@ typedef struct _THREAD_SYSTEM_DATA
 
     _Guarded_by_(ReadyThreadsLock)
     LIST_ENTRY          ReadyThreadsList;
+
+    LOCK                CountThreadsLock;
+
+    _Guarded_by_(CountThreadsLock)
+    DWORD          CountThreads;
 } THREAD_SYSTEM_DATA, *PTHREAD_SYSTEM_DATA;
 
 static THREAD_SYSTEM_DATA m_threadSystemData;
@@ -792,6 +797,9 @@ _ThreadInit(
 
         pThread->Id = _ThreadSystemGetNextTid();
         pThread->State = ThreadStateBlocked;
+        // lab02
+        // prob01
+        LOG("Thread %s created with ID 0x%x\n", pThread->Name, pThread->Id);
         pThread->Priority = Priority;
 
         LockInit(&pThread->BlockLock);
@@ -799,6 +807,11 @@ _ThreadInit(
         LockAcquire(&m_threadSystemData.AllThreadsLock, &oldIntrState);
         InsertTailList(&m_threadSystemData.AllThreadsList, &pThread->AllList);
         LockRelease(&m_threadSystemData.AllThreadsLock, oldIntrState);
+
+        // prob02
+        LockAcquire(&m_threadSystemData.CountThreadsLock, &oldIntrState);
+        m_threadSystemData.CountThreads++;
+        LockRelease(&m_threadSystemData.CountThreadsLock, oldIntrState);
     }
     __finally
     {
@@ -1190,6 +1203,11 @@ _ThreadDestroy(
     LockAcquire(&m_threadSystemData.AllThreadsLock, &oldState);
     RemoveEntryList(&pThread->AllList);
     LockRelease(&m_threadSystemData.AllThreadsLock, oldState);
+
+    // prob02
+    LockAcquire(&m_threadSystemData.CountThreadsLock, &oldState);
+    m_threadSystemData.CountThreads--;
+    LockRelease(&m_threadSystemData.CountThreadsLock, oldState);
 
     // This must be done before removing the thread from the process list, else
     // this may be the last thread and the process VAS will be freed by the time
