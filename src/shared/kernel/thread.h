@@ -117,5 +117,11 @@ ThreadGetId(
 //******************************************************************************
 THREAD_PRIORITY
 ThreadGetPriority(
-    IN_OPT  PTHREAD             Thread
+    
+    );
+
+// Get thread count
+DWORD
+ThreadGetCount(
+
     );

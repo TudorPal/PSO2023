@@ -137,7 +137,14 @@ void
     LOG("%10s", "Prt ticks|");
     LOG("%10s", "Ttl ticks|");
     LOG("%10s", "Process|");
+    DWORD countThreads = ThreadGetCount();
+    LOG("Numarul de threaduri este %d", countThreads);
+    //PID parentPID = ThreadGetParentId();
+    //LOG("PID-ul parintelui threadului curent este %d", parentPID);
+
     LOG("\n");
+
+    
 
     status = ThreadExecuteForEachThreadEntry(_CmdThreadPrint, NULL );
     ASSERT( SUCCEEDED(status));

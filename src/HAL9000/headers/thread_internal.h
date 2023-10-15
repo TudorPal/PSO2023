@@ -90,6 +90,9 @@ typedef struct _THREAD
     PVOID                   UserStack;
 
     struct _PROCESS*        Process;
+    // Add a field in the THREAD structure to keep for each thread the TID of the thread that created it (parent of a thread). Display it in CmdListThreads() function, for each thread.
+    TID                     ParentTid;
+
 } THREAD, *PTHREAD;
 
 //******************************************************************************

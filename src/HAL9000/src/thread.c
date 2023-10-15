@@ -10,7 +10,7 @@
 #include "gdtmu.h"
 #include "pe_exports.h"
 
-#define TID_INCREMENT               4
+#define TID_INCREMENT               10 // prob03
 
 #define THREAD_TIME_SLICE           1
 
@@ -667,6 +667,28 @@ ThreadSetPriority(
 
     GetCurrentThread()->Priority = NewPriority;
 }
+
+// prob02
+DWORD
+ThreadGetCount(
+
+    )
+{
+    return m_threadSystemData.CountThreads;
+}
+
+// prob04
+TID
+ThreadGetParentID(
+    IN_OPT  PTHREAD             Thread
+    )
+{
+    PTHREAD pThread = (NULL != Thread) ? Thread : GetCurrentThread();
+
+    return (NULL != pThread) ? pThread->ParentTid : 0;
+}
+
+
 
 STATUS
 ThreadExecuteForEachThreadEntry(
