@@ -70,7 +70,7 @@ SystemInit(
     status = STATUS_SUCCESS;
     pCpu = NULL;
 
-    LogSystemInit(LogLevelInfo,
+    LogSystemInit(LogLevelError, // lab03, prob01
                   LogComponentInterrupt | LogComponentIo | LogComponentAcpi,
                   TRUE
                   );
@@ -255,6 +255,11 @@ SystemInit(
 
     LOGL("ThreadSystemInitIdleForCurrentCPU succeeded\n");
 
+    LogSystemInit(LogLevelInfo, // lab03, prob02
+        LogComponentInterrupt | LogComponentIo | LogComponentAcpi,
+        TRUE
+    );
+
     status = AcpiInterfaceLateInit();
     if (!SUCCEEDED(status))
     {
@@ -312,7 +317,10 @@ SystemInit(
     }
 
     LOGL("Network stack successfully initialized\n");
-
+    //LogSystemInit(LogLevelTrace, // lab03, prob03
+    //    LogComponentThread,
+    //    TRUE
+    //);
     return status;
 }
 

@@ -175,6 +175,8 @@ ThreadSystemInitMainForCurrentCPU(
     snprintf( mainThreadName, MAX_PATH, "%s-%02x", "main", pCpu->ApicId );
 
     status = _ThreadInit(mainThreadName, ThreadPriorityDefault, &pThread, FALSE);
+
+    //status = _ThreadInit(mainThreadName, ThreadPriorityDefault, NULL, FALSE); // lab03 prob04 Kernel panic because the thread is called with NULL as parameter
     if (!SUCCEEDED(status))
     {
         LOG_FUNC_ERROR("_ThreadInit", status );
