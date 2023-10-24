@@ -242,6 +242,7 @@
     <ClCompile Include="src\os_info.c" />
     <ClCompile Include="src\pci_system.c" />
     <ClCompile Include="src\print.c" />
+    <ClCompile Include="src\semaphores.c" />
     <ClCompile Include="src\serial_comm.c" />
     <ClCompile Include="src\smp.c" />
     <ClCompile Include="src\syscall.c" />
@@ -344,6 +345,7 @@
     <ClInclude Include="headers\os_info.h" />
     <ClInclude Include="headers\print.h" />
     <ClInclude Include="headers\scan_codes.h" />
+    <ClInclude Include="headers\semaphores.h" />
     <ClInclude Include="headers\serial_comm.h" />
     <ClInclude Include="headers\smp.h" />
     <ClInclude Include="headers\synch.h" />

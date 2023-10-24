@@ -93,6 +93,15 @@ typedef struct _THREAD
     // Add a field in the THREAD structure to keep for each thread the TID of the thread that created it (parent of a thread). Display it in CmdListThreads() function, for each thread.
     TID                     ParentTid;
 
+    // threads 2. store the identifier of the CPU the thread was created on.
+    APIC_ID                 CreationCpuApicId;
+
+    // for thread as a child
+    TID                     ParentId;
+    // for thread as a parent
+    unsigned long           NumberOfChildrenCreated;
+    volatile long           NumberOfActiveChildren;
+
 } THREAD, *PTHREAD;
 
 //******************************************************************************

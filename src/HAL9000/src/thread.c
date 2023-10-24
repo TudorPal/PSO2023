@@ -10,7 +10,7 @@
 #include "gdtmu.h"
 #include "pe_exports.h"
 
-#define TID_INCREMENT               10 // prob03
+#define TID_INCREMENT               8 // threads 1. si lab03
 
 #define THREAD_TIME_SLICE           1
 

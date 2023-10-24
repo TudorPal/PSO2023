@@ -98,7 +98,7 @@ ExEventWaitForSignal(
     {
         LockAcquire(&Event->EventLock, &dummyState);
         InsertTailList(&Event->WaitingList, &pCurrentThread->ReadyList);
-        ThreadTakeBlockLock();
+        ThreadTakeBlockLock()
         LockRelease(&Event->EventLock, dummyState);
         ThreadBlock();
 
