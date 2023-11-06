@@ -100,7 +100,10 @@ typedef struct _THREAD
     TID                     ParentId;
     // for thread as a parent
     unsigned long           NumberOfChildrenCreated;
-    volatile long           NumberOfActiveChildren;
+    volatile DWORD          NumberOfActiveChildren;
+
+    QWORD                   CurrentTimeQuantum;
+    QWORD                   TotalTimeQuantum;
 
 } THREAD, *PTHREAD;
 

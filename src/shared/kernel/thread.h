@@ -125,3 +125,8 @@ DWORD
 ThreadGetCount(
 
     );
+
+PTHREAD 
+_ThreadReferenceByTid(
+    IN TID ThreadId
+    );
