@@ -338,6 +338,10 @@ SystemInit(
     //    LogComponentThread,
     //    TRUE
     //);
+    LogSystemInit(LogLevelTrace, // lab05, prob01
+        LogComponentUserMode,
+        TRUE
+    );
     status = SmpSendGenericIpi(_HelloIpi, NULL, NULL, NULL, TRUE);
     if (!SUCCEEDED(status))
     {

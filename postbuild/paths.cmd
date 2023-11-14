@@ -73,11 +73,12 @@ goto end
 :config_DESKTOP-29S2BNN
 
 SET VOL_MOUNT_LETTER="Q:"
-SET PXE_PATH="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\PXE"
-SET PATH_TO_VM_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmx"
-SET PATH_TO_LOG_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.log"
-SET PATH_TO_VIX_TOOLS="D:\programe\VMware.Workstation.Pro.16.2.0+VMware.Workstation.16.2.0.Player"
+SET PATH_TO_VM_TOOLS="C:\Program Files (x86)\VMware\VMware Virtual Disk Development Kit"
 SET PATH_TO_VM_DISK="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmdk"
+SET PATH_TO_VM_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmx"
+SET PATH_TO_VIX_TOOLS="D:\programe\VMware.Workstation.Pro.16.2.0+VMware.Workstation.16.2.0.Player"
+SET PXE_PATH="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\PXE"
+SET PATH_TO_LOG_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.log"
 goto end
 
 :end

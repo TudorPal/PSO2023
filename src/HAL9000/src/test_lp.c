@@ -64,8 +64,10 @@ STATUS MultithreadFibonacci(
 
         ThreadWaitForTermination(thread1, &exitStatus1);
         ThreadWaitForTermination(thread2, &exitStatus2);
-
         context->Result = context1.Result + context2.Result;
+        LOG("thread 1 result is: %d\n", context1.Result);
+        LOG("thread 2 result is: %d\n", context2.Result);
+        
     }
     __finally
     {
@@ -77,14 +79,16 @@ STATUS MultithreadFibonacci(
         {
             ThreadCloseHandle(thread2);
         }
+        
+        if (context->Result == 55) {
+            LOG("Test passed: Result is correct (expected 55)\n");
+            status = STATUS_SUCCESS;
+        }
+        else {
+            LOG("Test failed: Result is incorrect (expected 55, got %d)\n", context->Result);
+            status = STATUS_UNSUCCESSFUL;
+        }
     }
-    if (context->Result == 55) {
-        LOG("Test passed: Result is correct (expected 55)\n");
-        status = STATUS_SUCCESS;
-    }
-    else {
-        LOG("Test failed: Result is incorrect (expected 55, got %d)\n", context->Result);
-        status = STATUS_UNSUCCESSFUL;
-    }
+   
     return status;
 }
