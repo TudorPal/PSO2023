@@ -92,6 +92,7 @@
       <StringPooling>true</StringPooling>
       <OmitFramePointers>true</OmitFramePointers>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Native</SubSystem>
