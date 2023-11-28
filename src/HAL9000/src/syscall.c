@@ -7,6 +7,9 @@
 #include "mmu.h"
 #include "process_internal.h"
 #include "dmp_cpu.h"
+#include "cpumu.h"
+#include "thread_internal.h"
+#include "smp.h"
 
 extern void SyscallEntry();
 
@@ -68,6 +71,43 @@ SyscallHandler(
             status = SyscallValidateInterface((SYSCALL_IF_VERSION)*pSyscallParameters);
             break;
         // STUDENT TODO: implement the rest of the syscalls
+        case SyscallIdFileWrite:
+            status = SyscallFileWrite((UM_HANDLE)pSyscallParameters[0],
+                (PVOID)pSyscallParameters[1],
+                (QWORD)pSyscallParameters[2],
+                (QWORD*)pSyscallParameters[3]);
+            break;
+        case SyscallIdProcessExit:
+            status = SyscallProcessExit((STATUS)pSyscallParameters[0]);
+            break;
+        case SyscallIdThreadExit:
+            status = SyscallThreadExit((STATUS)pSyscallParameters[0]);
+            break;
+            // STUDENT TODO: implement the rest of the syscalls
+        case SyscallIdThreadGetTid:
+            status = SyscallThreadGetTid((UM_HANDLE)pSyscallParameters[0],
+                (TID*)pSyscallParameters[1]);
+            break;
+        case SyscallIdProcessGetName:
+            status = SyscallProcessGetName((char*)pSyscallParameters[0],
+                (QWORD)pSyscallParameters[1]);
+            break;
+        case SyscallIdGetThreadPriority:
+            status = SyscallGetThreadPriority((BYTE*)pSyscallParameters[0]);
+            break;
+        case SyscallIdSetThreadPriority:
+            status = SyscallSetThreadPriority((BYTE)pSyscallParameters[0]);
+            break;
+        case SyscallIdGetCurrentCPUID:
+            status = SyscallGetCurrentCPUID((BYTE*)pSyscallParameters[0]);
+            break;
+        case SyscallIdGetNumberOfThreadsForCurrentProcess:
+            status = SyscallGetNumberOfThreadsForCurrentProcess((DWORD*)pSyscallParameters[0]);
+            break;
+        case SyscallIdGetCPUUtilization:
+            status = SyscallGetCPUUtilization((BYTE*)pSyscallParameters[0],
+                (BYTE*)pSyscallParameters[1]);
+            break;
         default:
             LOG_ERROR("Unimplemented syscall called from User-space!\n");
             status = STATUS_UNSUPPORTED;
@@ -170,3 +210,232 @@ SyscallValidateInterface(
 }
 
 // STUDENT TODO: implement the rest of the syscalls
+
+STATUS
+SyscallFileWrite(
+    IN  UM_HANDLE                   FileHandle,
+    IN_READS_BYTES(BytesToWrite)
+    PVOID                           Buffer,
+    IN  QWORD                       BytesToWrite,
+    OUT QWORD* BytesWritten
+)
+{
+    *BytesWritten = 0;
+    if (FileHandle == UM_FILE_HANDLE_STDOUT) {
+        LOG("%s\n", Buffer);
+        *BytesWritten = BytesToWrite;
+    }
+
+    return STATUS_SUCCESS;
+}
+
+STATUS
+SyscallProcessExit(
+    IN      STATUS                  ExitStatus
+)
+{
+    UNREFERENCED_PARAMETER(ExitStatus);
+
+    ProcessTerminate(NULL);
+
+    return STATUS_SUCCESS;
+}
+
+STATUS
+SyscallThreadExit(
+    IN      STATUS                  ExitStatus
+)
+{
+    ThreadExit(ExitStatus);
+
+    return STATUS_SUCCESS;
+}
+
+STATUS
+SyscallThreadGetTid(
+    IN_OPT  UM_HANDLE               ThreadHandle,
+    OUT     TID* ThreadId
+)
+{
+    if (ThreadHandle != UM_INVALID_HANDLE) {
+        //PTHREAD pThread = GetThreadFromHandle(ThreadHandle);
+        PTHREAD pThread = GetCurrentThread();
+
+        // Check if the thread handle is valid
+        if (pThread == NULL) {
+            return STATUS_INVALID_HANDLE;
+        }
+        *ThreadId = pThread->Id;
+    }
+    else {
+        PTHREAD pCurrentThread = GetCurrentThread();
+        *ThreadId = pCurrentThread->Id;
+    }
+
+    return STATUS_SUCCESS;
+}
+
+STATUS
+SyscallProcessGetName(
+    OUT char* ProcessName,
+    IN QWORD ProcessNameMaxLen
+)
+{
+    PPROCESS process = GetCurrentProcess();
+
+    // Check if the buffer is valid and mapped in user-mode
+    STATUS status = MmuIsBufferValid(ProcessName, ProcessNameMaxLen, PAGE_RIGHTS_WRITE, process);
+    if (!SUCCEEDED(status)) {
+        return status;
+    }
+
+    QWORD length = strlen(process->ProcessName);
+    LOG("Process name length: %d\n", length);
+    LOG("Process name: %s\n", process->ProcessName);
+    if (length > ProcessNameMaxLen) {
+        strncpy(ProcessName, process->ProcessName, (DWORD)ProcessNameMaxLen);
+	}
+    else {
+        strncpy(ProcessName, process->ProcessName, (DWORD)length);
+    }
+
+    // finish the string with a null terminator
+    ProcessName[length] = '\0';
+
+    // if the name was truncated, return an error
+    if (length > ProcessNameMaxLen) {
+        return STATUS_TRUNCATED_PROCESS_NAME;
+    }
+
+    return STATUS_SUCCESS;
+}
+
+STATUS
+SyscallGetThreadPriority(
+    OUT BYTE* ThreadPriority
+)
+{
+    PTHREAD pCurrentThread = GetCurrentThread();
+    *ThreadPriority = pCurrentThread->Priority;
+
+    return STATUS_SUCCESS;
+}
+
+STATUS
+SyscallSetThreadPriority(
+    IN BYTE ThreadPriority
+)
+{
+    PTHREAD pCurrentThread = GetCurrentThread();
+    pCurrentThread->Priority = ThreadPriority;
+
+    return STATUS_SUCCESS;
+}
+
+STATUS
+SyscallGetCurrentCPUID(
+    OUT BYTE* CpuId
+)
+{
+    *CpuId = GetCurrentPcpu()->ApicId;
+
+    return STATUS_SUCCESS;
+}
+
+STATUS
+SyscallGetNumberOfThreadsForCurrentProcess(
+    OUT DWORD* ThreadNo
+)
+{
+    PPROCESS process = GetCurrentProcess();
+    *ThreadNo = process->NumberOfThreads;
+
+    return STATUS_SUCCESS;
+}
+
+PPCPU FindCpuById(
+    IN BYTE CpuId
+)
+{
+    PLIST_ENTRY pCpuListHead;
+    PLIST_ENTRY pCurEntry;
+
+    pCpuListHead = NULL;
+
+    SmpGetCpuList(&pCpuListHead);
+
+    for (pCurEntry = pCpuListHead->Flink; pCurEntry != pCpuListHead; pCurEntry = pCurEntry->Flink)
+    {
+        PPCPU pCpu = CONTAINING_RECORD(pCurEntry, PCPU, ListEntry);
+
+        if (pCpu->ApicId == CpuId)
+        {
+            return pCpu;
+        }
+    }
+
+    return NULL;
+}
+
+STATUS
+SyscallGetCPUUtilization(
+    IN_OPT BYTE* CpuId,
+    OUT BYTE* Utilization
+)
+{
+    // Reset Utilization to 0
+    *Utilization = 0;
+
+    if (CpuId != NULL) {
+        PPCPU pCpu = FindCpuById(*CpuId);
+
+        if (pCpu != NULL) {
+            // Calculate utilization for the specified CPU
+            QWORD totalIdleTicks = pCpu->ThreadData.IdleTicks;
+            QWORD totalTicks = pCpu->ThreadData.IdleTicks + pCpu->ThreadData.KernelTicks;
+
+            // Avoid division by zero
+            if (totalTicks != 0) {
+                *Utilization = (BYTE)(((totalTicks - totalIdleTicks) * 100) / totalTicks);
+                totalTicks = ((totalTicks - totalIdleTicks) * 100) / totalTicks;
+                LOG("\n UTILIZATION IN FUNCTION IS: %d\n", totalTicks);
+            }
+        }
+        else {
+            LOG("Process with this CPUid was not found!");
+        }
+    }
+    else {
+        // all cpus
+        PLIST_ENTRY pCpuListHead;
+        PLIST_ENTRY pCurEntry;
+
+        // similar to CmdListCpus
+
+        pCpuListHead = NULL;
+
+        SmpGetCpuList(&pCpuListHead);
+
+        QWORD totalIdleTicks = 0;
+        QWORD totalTicks = 0;
+
+        for (pCurEntry = pCpuListHead->Flink;
+            pCurEntry != pCpuListHead;
+            pCurEntry = pCurEntry->Flink)
+        {
+            PPCPU pCpu = CONTAINING_RECORD(pCurEntry, PCPU, ListEntry);
+            totalIdleTicks += pCpu->ThreadData.IdleTicks;
+            totalTicks += pCpu->ThreadData.IdleTicks + pCpu->ThreadData.KernelTicks;
+        }
+
+        // Avoid division by zero
+        if (totalTicks != 0) {
+            *Utilization = (BYTE)(((totalTicks - totalIdleTicks) * 100) / totalTicks);
+            totalTicks = ((totalTicks - totalIdleTicks) * 100) / totalTicks;
+            LOG("\n UTILIZATION IN FUNCTION IS: %d\n", totalTicks);
+        }
+    }
+
+    return STATUS_SUCCESS;
+}
+
