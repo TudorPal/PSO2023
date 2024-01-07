@@ -10,6 +10,7 @@
 #include "cpumu.h"
 #include "thread_internal.h"
 #include "smp.h"
+#include "vmm.h"
 
 extern void SyscallEntry();
 
@@ -107,6 +108,16 @@ SyscallHandler(
         case SyscallIdGetCPUUtilization:
             status = SyscallGetCPUUtilization((BYTE*)pSyscallParameters[0],
                 (BYTE*)pSyscallParameters[1]);
+            break;
+        case SyscallIdVirtualAlloc:
+            status = SyscallVirtualAlloc((PVOID)pSyscallParameters[0],
+                (QWORD)pSyscallParameters[1],
+                (VMM_ALLOC_TYPE)pSyscallParameters[2],
+                (PAGE_RIGHTS)pSyscallParameters[3],
+                (UM_HANDLE)pSyscallParameters[4],
+                (QWORD)pSyscallParameters[5],
+                (PVOID*)pSyscallParameters[6]
+            );
             break;
         default:
             LOG_ERROR("Unimplemented syscall called from User-space!\n");
@@ -210,7 +221,7 @@ SyscallValidateInterface(
 }
 
 // STUDENT TODO: implement the rest of the syscalls
-
+// Useprog 2.
 STATUS
 SyscallFileWrite(
     IN  UM_HANDLE                   FileHandle,
@@ -383,7 +394,6 @@ SyscallGetCPUUtilization(
     OUT BYTE* Utilization
 )
 {
-    // Reset Utilization to 0
     *Utilization = 0;
 
     if (CpuId != NULL) {
@@ -394,7 +404,6 @@ SyscallGetCPUUtilization(
             QWORD totalIdleTicks = pCpu->ThreadData.IdleTicks;
             QWORD totalTicks = pCpu->ThreadData.IdleTicks + pCpu->ThreadData.KernelTicks;
 
-            // Avoid division by zero
             if (totalTicks != 0) {
                 *Utilization = (BYTE)(((totalTicks - totalIdleTicks) * 100) / totalTicks);
                 totalTicks = ((totalTicks - totalIdleTicks) * 100) / totalTicks;
@@ -428,7 +437,6 @@ SyscallGetCPUUtilization(
             totalTicks += pCpu->ThreadData.IdleTicks + pCpu->ThreadData.KernelTicks;
         }
 
-        // Avoid division by zero
         if (totalTicks != 0) {
             *Utilization = (BYTE)(((totalTicks - totalIdleTicks) * 100) / totalTicks);
             totalTicks = ((totalTicks - totalIdleTicks) * 100) / totalTicks;
@@ -439,3 +447,43 @@ SyscallGetCPUUtilization(
     return STATUS_SUCCESS;
 }
 
+// lab9 syscall virtual alloc
+STATUS
+SyscallVirtualAlloc(
+    IN_OPT      PVOID                   BaseAddress,
+    IN          QWORD                   Size,
+    IN          VMM_ALLOC_TYPE          AllocType,
+    IN          PAGE_RIGHTS             PageRights,
+    IN_OPT      UM_HANDLE               FileHandle,
+    IN_OPT      QWORD                   Key,
+    OUT         PVOID* AllocatedAddress
+) {
+    UNREFERENCED_PARAMETER(FileHandle);
+    UNREFERENCED_PARAMETER(Key);
+
+    PPROCESS cProcess = GetCurrentProcess();
+
+    *AllocatedAddress = VmmAllocRegionEx(BaseAddress, Size, AllocType, PageRights, FALSE, NULL, cProcess->VaSpace, cProcess->PagingData, NULL);
+
+    return STATUS_SUCCESS;
+}
+
+// Userprog 4. SyscallIdMemset
+/*Implement a system call SyscallIdMemset which effectively does a memset on a requested virtual address. In the corresponding system call handler check if the pointer receives as a parameter is valid or not.*/
+STATUS
+SyscallMemset(
+    OUT_WRITES(BytesToWrite)    PBYTE   Address,
+    IN                          DWORD   BytesToWrite,
+    IN                          BYTE    ValueToWrite
+) {
+    PPROCESS currentProcess = GetCurrentProcess();
+
+    STATUS status = MmuIsBufferValid(Address, BytesToWrite, PAGE_RIGHTS_WRITE, currentProcess);
+    if (!SUCCEEDED(status)) {
+        return status;
+    }
+
+    memset(Address, ValueToWrite, BytesToWrite);
+
+    return STATUS_SUCCESS;
+}

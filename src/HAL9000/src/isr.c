@@ -144,6 +144,7 @@ _IsrExceptionHandler(
     }
 
     // lab05 ex 10
+    // Userprog 3.
     if (!GdtIsSegmentPrivileged((WORD)StackPointer->Registers.CS))
     {
         PPROCESS currProcess = GetCurrentProcess();

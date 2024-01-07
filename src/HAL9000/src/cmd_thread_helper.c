@@ -41,6 +41,18 @@ typedef struct _BOUND_THREAD_CTX
     EX_EVENT                Event;
 } BOUND_THREAD_CTX, *PBOUND_THREAD_CTX;
 
+// Threads 9. struct for sum
+typedef struct _SUM_THREAD_DATA {
+    PFILE_OBJECT FileObject;
+    QWORD PartialSum;
+} SUM_THREAD_DATA, * PSUM_THREAD_DATA;
+
+// Threads 9. Mutex to protect the global sum
+LOCK gSumLock;
+
+// Threads 9. Global sum variable
+QWORD gGlobalSum;
+
 static FUNC_ThreadStart     _ThreadCpuBound;
 static FUNC_ThreadStart     _ThreadIoBound;
 
@@ -138,7 +150,12 @@ void
     LOG("%10s", "Ttl ticks|");
     LOG("%10s", "Process|");
     DWORD countThreads = ThreadGetCount();
-    LOG("Numarul de threaduri este %d", countThreads);
+    LOG("\nNumarul TOTAL de threaduri este %d", countThreads);
+    // Threads 4. print threads
+    DWORD readyCount = ThreadGetReadyCount();
+    LOG("\nNumarul de threaduri READY este %d", readyCount);
+    DWORD blockedCount = ThreadGetBlockedCount();
+    LOG("\nNumarul de threaduri BLOCKED este %d", blockedCount);
     //PID parentPID = ThreadGetParentId();
     //LOG("PID-ul parintelui threadului curent este %d", parentPID);
 
@@ -701,6 +718,30 @@ STATUS
     LOG("%9U%c", pThread->TickCountCompleted + pThread->TickCountEarly, '|');
     LOG("%9x%c", pThread->Process->Id, '|');
     LOG("\n");
+    
+    // Threads 3. Print children
+    if (!IsListEmpty(&pThread->ChildList))
+    {
+        LOG(" Children: ");
+        LIST_ENTRY* pChildEntry;
+        PTHREAD pChildThread;
+        BOOLEAN isFirst = TRUE;
+
+        for (pChildEntry = pThread->ChildList.Flink;
+            pChildEntry != &pThread->ChildList;
+            pChildEntry = pChildEntry->Flink)
+        {
+            pChildThread = CONTAINING_RECORD(pChildEntry, THREAD, ChildList);
+
+            if (!isFirst) {
+                LOG(", ");
+            }
+            LOG("%d", pChildThread->Id);
+            isFirst = FALSE;
+        }
+    }
+
+    LOG("\n");
 
     return STATUS_SUCCESS;
 }
@@ -730,9 +771,13 @@ STATUS
     ASSERT(NULL == Context);
 
     pCpu = GetCurrentPcpu();
-    ASSERT( NULL != pCpu );
+    ASSERT(NULL != pCpu);
 
-    printf("Hello from CPU 0x%02x [0x%02x]\n", pCpu->ApicId, pCpu->LogicalApicId);
+    LOGP("Hello from CPU 0x%02x [0x%02x]\n", pCpu->ApicId, pCpu->LogicalApicId);
+
+    // Threads 8. Make the CPU non-preemptable
+    LOGP("Hello there!\n");
+    while (1);
 
     return STATUS_SUCCESS;
 }
@@ -779,6 +824,116 @@ STATUS
     }
 
     return STATUS_SUCCESS;
+}
+
+// Threads 9 and 10. start function for calculating partial sum
+STATUS
+ThreadCalculatePartialSum(
+    IN_OPT PVOID Context
+)
+{
+    PSUM_THREAD_DATA threadData = (PSUM_THREAD_DATA)Context;
+    INTR_STATE oldState;
+    ASSERT(NULL != threadData->FileObject);
+    QWORD localSum = 0;
+    QWORD offset = 0;
+    QWORD bytesRead = 0;
+
+    // Calculate partial sum
+    while (1) {
+        BYTE byte;
+        STATUS status = IoReadFile(threadData->FileObject, 1, &offset, &byte, &bytesRead);
+
+        if (!SUCCEEDED(status)) {
+            break;
+        }
+
+        localSum += byte;
+    }
+
+    LockAcquire(&gSumLock, &oldState);
+    gGlobalSum += localSum;
+    LockRelease(&gSumLock, oldState);
+
+    return STATUS_SUCCESS;
+}
+
+// Threads 9 and 10. calculatesum
+void
+(__cdecl CmdCalculateSum)(
+    IN      QWORD       NumberOfParameters,
+    IN_Z    char* NumberOfThreads,
+    IN_Z    char* File
+    )
+{
+
+    DWORD threads;
+    //STATUS status = AcpiOsOpenFile(File);
+    FILE_INFORMATION fileInformation;
+    memzero(&fileInformation, sizeof(FILE_INFORMATION));
+
+    ASSERT(NumberOfParameters == 2);
+
+    atoi32(&threads, NumberOfThreads, BASE_TEN);
+    LOG("File is: %s", File);
+
+    PFILE_OBJECT fileObject;
+    STATUS status = IoCreateFile(&fileObject, File, FALSE, FALSE, FALSE);
+
+    if (!SUCCEEDED(status)) {
+        printf("Failed to open file: %s\n", File);
+        return;
+    }
+
+    gGlobalSum = 0;
+    LockInit(&gSumLock);
+
+    PTHREAD* threadArray = ExAllocatePoolWithTag(0, threads * sizeof(PTHREAD), HEAP_TEMP_TAG, 0);
+    PSUM_THREAD_DATA threadDataArray = ExAllocatePoolWithTag(0, threads * sizeof(SUM_THREAD_DATA), HEAP_TEMP_TAG, 0);
+
+    if (threadArray == NULL || threadDataArray == NULL) {
+        printf("Failed to allocate memory for threadArray or threadDataArray\n");
+        return;
+    }
+
+    IoQueryInformationFile(fileObject, &fileInformation);
+    QWORD chunkSize = fileInformation.FileSize / threads;
+    QWORD remainingSize = fileInformation.FileSize;
+
+    for (DWORD i = 0; i < threads; ++i) {
+        // Initialize thread data
+        threadDataArray[i].FileObject = fileObject;
+        threadDataArray[i].PartialSum = 0;
+
+        QWORD currentChunkSize = (i == threads - 1) ? remainingSize : chunkSize;
+        status = ThreadCreateEx("CalculateSumThread", ThreadPriorityDefault,
+            ThreadCalculatePartialSum, &threadDataArray[i], &threadArray[i], GetCurrentProcess());
+
+        if (!SUCCEEDED(status)) {
+            printf("Failed to create threads for /calculatesum\n");
+            ExFreePoolWithTag(threadArray, HEAP_TEMP_TAG);
+            ExFreePoolWithTag(threadDataArray, HEAP_TEMP_TAG);
+            IoCloseFile(fileObject);
+            return;
+        }
+
+        remainingSize -= currentChunkSize;
+
+        // Move the file pointer to the next chunk
+        //IoSeekFile(fileObject, currentChunkSize, SeekModeRelative);
+    }
+
+    // Wait for all threads to finish
+    for (DWORD i = 0; i < threads; ++i) {
+        STATUS exitStatus;
+        ThreadWaitForTermination(threadArray[i], &exitStatus);
+        ThreadCloseHandle(threadArray[i]);
+    }
+
+    printf("Sum of bytes in file %s: %llu\n", File, gGlobalSum);
+    ExFreePoolWithTag(threadArray, HEAP_TEMP_TAG);
+    ExFreePoolWithTag(threadDataArray, HEAP_TEMP_TAG);
+    IoCloseFile(fileObject);
 }
 
 #pragma warning(pop)

@@ -105,6 +105,12 @@ typedef struct _THREAD
     QWORD                   CurrentTimeQuantum;
     QWORD                   TotalTimeQuantum;
 
+    // Threads 2. TimesYielded
+    QWORD                   TimesYielded;
+
+    // Threads 3. Child list
+    LIST_ENTRY              ChildList;
+
 } THREAD, *PTHREAD;
 
 //******************************************************************************

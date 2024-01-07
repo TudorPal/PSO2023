@@ -126,6 +126,17 @@ ThreadGetCount(
 
     );
 
+// Threads 4.
+DWORD
+ThreadGetReadyCount(
+
+);
+
+DWORD
+ThreadGetBlockedCount(
+
+);
+
 PTHREAD 
 _ThreadReferenceByTid(
     IN TID ThreadId

@@ -304,6 +304,22 @@ SyscallVirtualFree(
     IN          VMM_FREE_TYPE           FreeType
     );
 
+// SyscallMemset
+//******************************************************************************
+// Function:     SyscallMemset
+// Description:  Does a memset on a requested virtual address.
+// Returns:      STATUS
+// Parameter:    OUT_WRITES PBYTE Address
+// Parameter:    IN DWORD BytesToWrite
+// Parameter:    IN Byte ValueToWrite
+//******************************************************************************
+STATUS
+SyscallMemset(
+    OUT_WRITES(BytesToWrite)    PBYTE   Address,
+    IN                          DWORD   BytesToWrite,
+    IN                          BYTE    ValueToWrite
+);
+
 // SyscallIdFileCreate
 //******************************************************************************
 // Function:     SyscallFileCreate

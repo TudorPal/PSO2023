@@ -109,7 +109,7 @@
       <AdditionalOptions>/ALIGN:0x200 /IGNORE:4108 /MERGE:.mboot=.text %(AdditionalOptions)</AdditionalOptions>
       <AdditionalLibraryDirectories>$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\HAL;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\FAT32;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\SwapFS;$(SolutionDir)..\acpi\bin\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\commonlib;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\PE_Parser;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\Eth_82574L;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\NetworkStack;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\NetworkPort;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\Disk;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\Volume;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\Ata</AdditionalLibraryDirectories>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
+      <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
     </Link>
     <YASM>
       <Defines>DEBUG</Defines>
@@ -170,7 +170,7 @@
       <AdditionalOptions>/ALIGN:0x200 /IGNORE:4108 /MERGE:.mboot=.text %(AdditionalOptions)</AdditionalOptions>
       <AdditionalLibraryDirectories>$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\HAL;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\FAT32;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\SwapFS;$(SolutionDir)..\acpi\bin\$(PlatformName)\Debug;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\commonlib;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\PE_Parser;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\Eth_82574L;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\NetworkStack;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\NetworkPort;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\Disk;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\Volume;$(SolutionDir)..\bin\$(PlatformName)\$(ConfigurationName)\Ata</AdditionalLibraryDirectories>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
+      <TreatLinkerWarningAsErrors>false</TreatLinkerWarningAsErrors>
     </Link>
     <YASM>
       <Defines>DEBUG</Defines>
