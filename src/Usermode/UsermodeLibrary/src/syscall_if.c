@@ -67,6 +67,24 @@ SyscallThreadCloseHandle(
     return SyscallEntry(SyscallIdThreadCloseHandle, ThreadHandle);
 }
 
+//SyscallGetThreadPriority
+STATUS
+SyscallGetThreadPriority(
+    OUT BYTE* ThreadPriority
+)
+{
+    return SyscallEntry(SyscallIdGetThreadPriority, ThreadPriority);
+}
+
+//SyscallSetThreadPriority
+STATUS
+SyscallSetThreadPriority(
+    IN BYTE ThreadPriority
+)
+{
+    return SyscallEntry(SyscallIdSetThreadPriority, ThreadPriority);
+}
+
 // SyscallIdProcessExit
 STATUS
 SyscallProcessExit(
@@ -118,6 +136,44 @@ SyscallProcessCloseHandle(
     )
 {
     return SyscallEntry(SyscallIdProcessCloseHandle, ProcessHandle);
+}
+
+// SyscallProcessGetName
+STATUS
+SyscallProcessGetName(
+    OUT char* ProcessName,
+    IN QWORD ProcessNameMaxLen
+)
+{
+    return SyscallEntry(SyscallIdProcessGetName, ProcessName, ProcessNameMaxLen);
+}
+
+// SyscallGetCurrentCPUID
+STATUS
+SyscallGetCurrentCPUID(
+    OUT BYTE* CpuId
+)
+{
+    return SyscallEntry(SyscallIdGetCurrentCPUID, CpuId);
+}
+
+// SyscallGetNumberOfThreadsForCurrentProcess
+STATUS
+SyscallGetNumberOfThreadsForCurrentProcess(
+    OUT DWORD* ThreadNo
+)
+{
+    return SyscallEntry(SyscallIdGetNumberOfThreadsForCurrentProcess, ThreadNo);
+}
+
+// SyscallGetCPUUtilization
+STATUS
+SyscallGetCPUUtilization(
+    IN_OPT BYTE* CpuId,
+    OUT BYTE* Utilization
+)
+{
+    return SyscallEntry(SyscallIdGetCPUUtilization, CpuId, Utilization);
 }
 
 // SyscallIdVirtualAlloc

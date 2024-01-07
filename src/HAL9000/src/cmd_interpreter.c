@@ -106,6 +106,10 @@ static const COMMAND_DEFINITION COMMANDS[] =
     { "rangefail", "Causes a range check failure to assert", CmdRangeFail, 0, 0},
     { "bitecookie", "Causes a GS cookie corruption to assert", CmdBiteCookie, 0, 0},
 
+    // Threads 9. calculatesum
+    { "calculatesum", "$THREADS $FILE\n\tCreate N threads to perform the sum of bytes of a file.", CmdCalculateSum, 2, 2},
+
+
     { "help", "Displays this help menu", _CmdPrintHelp, 0, 0}
 };
 

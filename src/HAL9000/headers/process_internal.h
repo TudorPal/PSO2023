@@ -41,6 +41,12 @@ typedef struct _PROCESS
     _Guarded_by_(ThreadListLock)
     volatile DWORD                  NumberOfThreads;
 
+    // lab11 1.a.
+    LOCK                            FrameMapLock;
+
+    _Guarded_by_(FrameMapLock)
+    LIST_ENTRY                      FrameMappingsHead;
+
     // The difference between NumberOfThreads and ActiveThreads is the following
     // ActiveThreads represents number of threads in process which have not died have
     // NumberOfThreads includes the threads which died but have not yet been destroyed

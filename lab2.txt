@@ -1,0 +1,355 @@
+diff --git a/lab1.txt b/lab1.txt
+new file mode 100644
+index 0000000..180e05d
+--- /dev/null
++++ b/lab1.txt
+@@ -0,0 +1,40 @@
++diff --git a/postbuild/paths.cmd b/postbuild/paths.cmd
++index cec924b..c0a8f7e 100644
++--- a/postbuild/paths.cmd
+++++ b/postbuild/paths.cmd
++@@ -12,6 +12,7 @@ set PATH_TO_VM_DISK=__EMPTY__
++ set PATH_TO_VM_TOOLS=__EMPTY__
++ set VOL_MOUNT_LETTER=__EMPTY__
++ 
+++if _%COMPUTERNAME%_==_DESKTOP-29S2BNN_ goto config_DESKTOP-29S2BNN
++ if _%COMPUTERNAME%_==_AGURZOU-DEV-PC_ goto config_AGURZOU-DEV
++ if _%COMPUTERNAME%_==_ALEX-PC_ goto config_ALEX-PC
++ if _%COMPUTERNAME%_==_AGURZOU-LPT_ goto config_AGURZOU-LPT
++@@ -69,4 +70,13 @@ set BOCHS_PATH="c:\Program Files (x86)\Bochs-2.6.8\"
++ 
++ goto end
++ 
+++:config_DESKTOP-29S2BNN
+++
+++SET PXE_PATH="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\PXE"
+++SET PATH_TO_LOG_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.log"
+++SET PATH_TO_VM_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmx"
+++SET PATH_TO_VIX_TOOLS="D:\programe\VMware.Workstation.Pro.16.2.0+VMware.Workstation.16.2.0.Player"
+++SET PATH_TO_VM_DISK="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmdk"
+++goto end
+++
++ :end
++\ No newline at end of file
++diff --git a/tests/check_tests.pl b/tests/check_tests.pl
++index 591ceae..a3c2e6b 100644
++--- a/tests/check_tests.pl
+++++ b/tests/check_tests.pl
++@@ -12,7 +12,7 @@
++ use strict;
++ use warnings;
++ 
++-# CheckFile
+++# CheckFile blbalbal
++ #
++ # Checks the result of the specified test (1st parameter) by comparing the generated .result file with the
++ # expected .test file. Returns 1 if the test succeeded and 0 if the test failed. Also, an .outcome file will be
+diff --git a/lab2.txt b/lab2.txt
+new file mode 100644
+index 0000000..3b12c02
+--- /dev/null
++++ b/lab2.txt
+@@ -0,0 +1,130 @@
++diff --git a/lab1.txt b/lab1.txt
++new file mode 100644
++index 0000000..180e05d
++--- /dev/null
+++++ b/lab1.txt
++@@ -0,0 +1,40 @@
+++diff --git a/postbuild/paths.cmd b/postbuild/paths.cmd
+++index cec924b..c0a8f7e 100644
+++--- a/postbuild/paths.cmd
++++++ b/postbuild/paths.cmd
+++@@ -12,6 +12,7 @@ set PATH_TO_VM_DISK=__EMPTY__
+++ set PATH_TO_VM_TOOLS=__EMPTY__
+++ set VOL_MOUNT_LETTER=__EMPTY__
+++ 
++++if _%COMPUTERNAME%_==_DESKTOP-29S2BNN_ goto config_DESKTOP-29S2BNN
+++ if _%COMPUTERNAME%_==_AGURZOU-DEV-PC_ goto config_AGURZOU-DEV
+++ if _%COMPUTERNAME%_==_ALEX-PC_ goto config_ALEX-PC
+++ if _%COMPUTERNAME%_==_AGURZOU-LPT_ goto config_AGURZOU-LPT
+++@@ -69,4 +70,13 @@ set BOCHS_PATH="c:\Program Files (x86)\Bochs-2.6.8\"
+++ 
+++ goto end
+++ 
++++:config_DESKTOP-29S2BNN
++++
++++SET PXE_PATH="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\PXE"
++++SET PATH_TO_LOG_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.log"
++++SET PATH_TO_VM_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmx"
++++SET PATH_TO_VIX_TOOLS="D:\programe\VMware.Workstation.Pro.16.2.0+VMware.Workstation.16.2.0.Player"
++++SET PATH_TO_VM_DISK="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmdk"
++++goto end
++++
+++ :end
+++\ No newline at end of file
+++diff --git a/tests/check_tests.pl b/tests/check_tests.pl
+++index 591ceae..a3c2e6b 100644
+++--- a/tests/check_tests.pl
++++++ b/tests/check_tests.pl
+++@@ -12,7 +12,7 @@
+++ use strict;
+++ use warnings;
+++ 
+++-# CheckFile
++++# CheckFile blbalbal
+++ #
+++ # Checks the result of the specified test (1st parameter) by comparing the generated .result file with the
+++ # expected .test file. Returns 1 if the test succeeded and 0 if the test failed. Also, an .outcome file will be
++diff --git a/postbuild/paths.cmd b/postbuild/paths.cmd
++index c0a8f7e..5c95421 100644
++--- a/postbuild/paths.cmd
+++++ b/postbuild/paths.cmd
++@@ -72,11 +72,12 @@ goto end
++ 
++ :config_DESKTOP-29S2BNN
++ 
++-SET PXE_PATH="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\PXE"
++-SET PATH_TO_LOG_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.log"
++-SET PATH_TO_VM_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmx"
++ SET PATH_TO_VIX_TOOLS="D:\programe\VMware.Workstation.Pro.16.2.0+VMware.Workstation.16.2.0.Player"
+++SET PATH_TO_LOG_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.log"
+++SET VOL_MOUNT_LETTER="Q:"
++ SET PATH_TO_VM_DISK="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmdk"
+++SET PATH_TO_VM_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmx"
+++SET PXE_PATH="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\PXE"
++ goto end
++ 
++ :end
++\ No newline at end of file
++diff --git a/src/HAL9000/src/thread.c b/src/HAL9000/src/thread.c
++index b311f0c..1b26ff6 100644
++--- a/src/HAL9000/src/thread.c
+++++ b/src/HAL9000/src/thread.c
++@@ -36,6 +36,11 @@ typedef struct _THREAD_SYSTEM_DATA
++ 
++     _Guarded_by_(ReadyThreadsLock)
++     LIST_ENTRY          ReadyThreadsList;
+++
+++    LOCK                CountThreadsLock;
+++
+++    _Guarded_by_(CountThreadsLock)
+++    DWORD          CountThreads;
++ } THREAD_SYSTEM_DATA, *PTHREAD_SYSTEM_DATA;
++ 
++ static THREAD_SYSTEM_DATA m_threadSystemData;
++@@ -792,6 +797,9 @@ _ThreadInit(
++ 
++         pThread->Id = _ThreadSystemGetNextTid();
++         pThread->State = ThreadStateBlocked;
+++        // lab02
+++        // prob01
+++        LOG("Thread %s created with ID 0x%x\n", pThread->Name, pThread->Id);
++         pThread->Priority = Priority;
++ 
++         LockInit(&pThread->BlockLock);
++@@ -799,6 +807,11 @@ _ThreadInit(
++         LockAcquire(&m_threadSystemData.AllThreadsLock, &oldIntrState);
++         InsertTailList(&m_threadSystemData.AllThreadsList, &pThread->AllList);
++         LockRelease(&m_threadSystemData.AllThreadsLock, oldIntrState);
+++
+++        // prob02
+++        LockAcquire(&m_threadSystemData.CountThreadsLock, &oldIntrState);
+++        m_threadSystemData.CountThreads++;
+++        LockRelease(&m_threadSystemData.CountThreadsLock, oldIntrState);
++     }
++     __finally
++     {
++@@ -1191,6 +1204,11 @@ _ThreadDestroy(
++     RemoveEntryList(&pThread->AllList);
++     LockRelease(&m_threadSystemData.AllThreadsLock, oldState);
++ 
+++    // prob02
+++    LockAcquire(&m_threadSystemData.CountThreadsLock, &oldState);
+++    m_threadSystemData.CountThreads--;
+++    LockRelease(&m_threadSystemData.CountThreadsLock, oldState);
+++
++     // This must be done before removing the thread from the process list, else
++     // this may be the last thread and the process VAS will be freed by the time
++     // ProcessRemoveThreadFromList - this function also dereferences the process
++diff --git a/tests/check_tests.pl b/tests/check_tests.pl
++index a3c2e6b..591ceae 100644
++--- a/tests/check_tests.pl
+++++ b/tests/check_tests.pl
++@@ -12,7 +12,7 @@
++ use strict;
++ use warnings;
++ 
++-# CheckFile blbalbal
+++# CheckFile
++ #
++ # Checks the result of the specified test (1st parameter) by comparing the generated .result file with the
++ # expected .test file. Returns 1 if the test succeeded and 0 if the test failed. Also, an .outcome file will be
+diff --git a/postbuild/paths.cmd b/postbuild/paths.cmd
+index c0a8f7e..5c95421 100644
+--- a/postbuild/paths.cmd
++++ b/postbuild/paths.cmd
+@@ -72,11 +72,12 @@ goto end
+ 
+ :config_DESKTOP-29S2BNN
+ 
+-SET PXE_PATH="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\PXE"
+-SET PATH_TO_LOG_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.log"
+-SET PATH_TO_VM_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmx"
+ SET PATH_TO_VIX_TOOLS="D:\programe\VMware.Workstation.Pro.16.2.0+VMware.Workstation.16.2.0.Player"
++SET PATH_TO_LOG_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.log"
++SET VOL_MOUNT_LETTER="Q:"
+ SET PATH_TO_VM_DISK="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmdk"
++SET PATH_TO_VM_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmx"
++SET PXE_PATH="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\PXE"
+ goto end
+ 
+ :end
+\ No newline at end of file
+diff --git a/src/HAL9000/headers/thread_internal.h b/src/HAL9000/headers/thread_internal.h
+index be2588a..958d2d7 100644
+--- a/src/HAL9000/headers/thread_internal.h
++++ b/src/HAL9000/headers/thread_internal.h
+@@ -90,6 +90,9 @@ typedef struct _THREAD
+     PVOID                   UserStack;
+ 
+     struct _PROCESS*        Process;
++    // Add a field in the THREAD structure to keep for each thread the TID of the thread that created it (parent of a thread). Display it in CmdListThreads() function, for each thread.
++    TID                     ParentTid;
++
+ } THREAD, *PTHREAD;
+ 
+ //******************************************************************************
+diff --git a/src/HAL9000/src/cmd_thread_helper.c b/src/HAL9000/src/cmd_thread_helper.c
+index f794c95..1877813 100644
+--- a/src/HAL9000/src/cmd_thread_helper.c
++++ b/src/HAL9000/src/cmd_thread_helper.c
+@@ -137,8 +137,15 @@ void
+     LOG("%10s", "Prt ticks|");
+     LOG("%10s", "Ttl ticks|");
+     LOG("%10s", "Process|");
++    DWORD countThreads = ThreadGetCount();
++    LOG("Numarul de threaduri este %d", countThreads);
++    //PID parentPID = ThreadGetParentId();
++    //LOG("PID-ul parintelui threadului curent este %d", parentPID);
++
+     LOG("\n");
+ 
++    
++
+     status = ThreadExecuteForEachThreadEntry(_CmdThreadPrint, NULL );
+     ASSERT( SUCCEEDED(status));
+ }
+diff --git a/src/HAL9000/src/thread.c b/src/HAL9000/src/thread.c
+index b311f0c..0400628 100644
+--- a/src/HAL9000/src/thread.c
++++ b/src/HAL9000/src/thread.c
+@@ -10,7 +10,7 @@
+ #include "gdtmu.h"
+ #include "pe_exports.h"
+ 
+-#define TID_INCREMENT               4
++#define TID_INCREMENT               10 // prob03
+ 
+ #define THREAD_TIME_SLICE           1
+ 
+@@ -36,6 +36,11 @@ typedef struct _THREAD_SYSTEM_DATA
+ 
+     _Guarded_by_(ReadyThreadsLock)
+     LIST_ENTRY          ReadyThreadsList;
++
++    LOCK                CountThreadsLock;
++
++    _Guarded_by_(CountThreadsLock)
++    DWORD          CountThreads;
+ } THREAD_SYSTEM_DATA, *PTHREAD_SYSTEM_DATA;
+ 
+ static THREAD_SYSTEM_DATA m_threadSystemData;
+@@ -663,6 +668,28 @@ ThreadSetPriority(
+     GetCurrentThread()->Priority = NewPriority;
+ }
+ 
++// prob02
++DWORD
++ThreadGetCount(
++
++    )
++{
++    return m_threadSystemData.CountThreads;
++}
++
++// prob04
++TID
++ThreadGetParentID(
++    IN_OPT  PTHREAD             Thread
++    )
++{
++    PTHREAD pThread = (NULL != Thread) ? Thread : GetCurrentThread();
++
++    return (NULL != pThread) ? pThread->ParentTid : 0;
++}
++
++
++
+ STATUS
+ ThreadExecuteForEachThreadEntry(
+     IN      PFUNC_ListFunction  Function,
+@@ -792,6 +819,9 @@ _ThreadInit(
+ 
+         pThread->Id = _ThreadSystemGetNextTid();
+         pThread->State = ThreadStateBlocked;
++        // lab02
++        // prob01
++        LOG("Thread %s created with ID 0x%x\n", pThread->Name, pThread->Id);
+         pThread->Priority = Priority;
+ 
+         LockInit(&pThread->BlockLock);
+@@ -799,6 +829,11 @@ _ThreadInit(
+         LockAcquire(&m_threadSystemData.AllThreadsLock, &oldIntrState);
+         InsertTailList(&m_threadSystemData.AllThreadsList, &pThread->AllList);
+         LockRelease(&m_threadSystemData.AllThreadsLock, oldIntrState);
++
++        // prob02
++        LockAcquire(&m_threadSystemData.CountThreadsLock, &oldIntrState);
++        m_threadSystemData.CountThreads++;
++        LockRelease(&m_threadSystemData.CountThreadsLock, oldIntrState);
+     }
+     __finally
+     {
+@@ -1191,6 +1226,11 @@ _ThreadDestroy(
+     RemoveEntryList(&pThread->AllList);
+     LockRelease(&m_threadSystemData.AllThreadsLock, oldState);
+ 
++    // prob02
++    LockAcquire(&m_threadSystemData.CountThreadsLock, &oldState);
++    m_threadSystemData.CountThreads--;
++    LockRelease(&m_threadSystemData.CountThreadsLock, oldState);
++
+     // This must be done before removing the thread from the process list, else
+     // this may be the last thread and the process VAS will be freed by the time
+     // ProcessRemoveThreadFromList - this function also dereferences the process
+diff --git a/src/shared/kernel/thread.h b/src/shared/kernel/thread.h
+index acc7153..53d8546 100644
+--- a/src/shared/kernel/thread.h
++++ b/src/shared/kernel/thread.h
+@@ -117,5 +117,11 @@ ThreadGetId(
+ //******************************************************************************
+ THREAD_PRIORITY
+ ThreadGetPriority(
+-    IN_OPT  PTHREAD             Thread
++    
++    );
++
++// Get thread count
++DWORD
++ThreadGetCount(
++
+     );
+diff --git a/tests/check_tests.pl b/tests/check_tests.pl
+index a3c2e6b..591ceae 100644
+--- a/tests/check_tests.pl
++++ b/tests/check_tests.pl
+@@ -12,7 +12,7 @@
+ use strict;
+ use warnings;
+ 
+-# CheckFile blbalbal
++# CheckFile
+ #
+ # Checks the result of the specified test (1st parameter) by comparing the generated .result file with the
+ # expected .test file. Returns 1 if the test succeeded and 0 if the test failed. Also, an .outcome file will be

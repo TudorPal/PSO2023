@@ -478,6 +478,10 @@ _ProcessInit(
 
         InitializeListHead(&pProcess->NextProcess);
 
+        // lab11 1.b.
+        InitializeListHead(&pProcess->FrameMappingsHead);
+        LockInit(&pProcess->FrameMapLock);
+
         pProcess->HeaderInfo = ExAllocatePoolWithTag(PoolAllocateZeroMemory, sizeof(PE_NT_HEADER_INFO), HEAP_PROCESS_TAG, 0);
         if (NULL == pProcess->HeaderInfo)
         {

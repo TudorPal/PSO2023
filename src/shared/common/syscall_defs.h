@@ -7,6 +7,7 @@ typedef DWORD SYSCALL_IF_VERSION;
 #define UM_INVALID_HANDLE_VALUE             0
 
 #define UM_FILE_HANDLE_STDOUT               (UM_HANDLE)0x1
+#define UM_INVALID_HANDLE					(UM_HANDLE)0x2
 
 typedef QWORD UM_HANDLE;
 

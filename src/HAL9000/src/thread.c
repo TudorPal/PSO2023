@@ -10,7 +10,8 @@
 #include "gdtmu.h"
 #include "pe_exports.h"
 
-#define TID_INCREMENT               4
+#define TID_INCREMENT               8 // threads 1. si lab03
+#define TID_DECREMENT               1 // Threads 1. exercise
 
 #define THREAD_TIME_SLICE           1
 
@@ -36,6 +37,20 @@ typedef struct _THREAD_SYSTEM_DATA
 
     _Guarded_by_(ReadyThreadsLock)
     LIST_ENTRY          ReadyThreadsList;
+
+    LOCK                CountThreadsLock;
+    LOCK                BlockedThreadsLock;
+
+    _Guarded_by_(CountThreadsLock)
+    DWORD               CountThreads;
+
+    // Threads 4.
+    _Guarded_by_(ReadyThreadsLock)
+    DWORD               ReadyThreads;
+
+    _Guarded_by_(BlockedThreadsLock)
+    DWORD               BlockedThreads;
+
 } THREAD_SYSTEM_DATA, *PTHREAD_SYSTEM_DATA;
 
 static THREAD_SYSTEM_DATA m_threadSystemData;
@@ -47,9 +62,10 @@ _ThreadSystemGetNextTid(
     void
     )
 {
-    static volatile TID __currentTid = 0;
+    // Threads 1. TID will have MAX_QWORD then -1 for each
+    static volatile TID __currentTid = MAX_QWORD;
 
-    return _InterlockedExchangeAdd64(&__currentTid, TID_INCREMENT);
+    return _InterlockedExchangeAdd64(&__currentTid, -TID_DECREMENT);
 }
 
 static
@@ -140,11 +156,21 @@ ThreadSystemPreinit(
 {
     memzero(&m_threadSystemData, sizeof(THREAD_SYSTEM_DATA));
 
+    //Threads 4.
+    m_threadSystemData.CountThreads = 0;
+    m_threadSystemData.ReadyThreads = 0;
+    m_threadSystemData.BlockedThreads = 0;
+
+    LOG("\nINITIALIZED READY THREADS WITH %u\n", m_threadSystemData.ReadyThreads);
+
     InitializeListHead(&m_threadSystemData.AllThreadsList);
     LockInit(&m_threadSystemData.AllThreadsLock);
 
     InitializeListHead(&m_threadSystemData.ReadyThreadsList);
     LockInit(&m_threadSystemData.ReadyThreadsLock);
+
+    LockInit(&m_threadSystemData.BlockedThreadsLock);
+    
 }
 
 STATUS
@@ -170,6 +196,8 @@ ThreadSystemInitMainForCurrentCPU(
     snprintf( mainThreadName, MAX_PATH, "%s-%02x", "main", pCpu->ApicId );
 
     status = _ThreadInit(mainThreadName, ThreadPriorityDefault, &pThread, FALSE);
+
+    //status = _ThreadInit(mainThreadName, ThreadPriorityDefault, NULL, FALSE); // lab03 prob04 Kernel panic because the thread is called with NULL as parameter
     if (!SUCCEEDED(status))
     {
         LOG_FUNC_ERROR("_ThreadInit", status );
@@ -410,6 +438,22 @@ ThreadCreateEx(
     }
     else
     {
+        PTHREAD currentThread = GetCurrentThread();
+
+        if (currentThread != NULL)
+        {
+            currentThread->NumberOfChildrenCreated++;
+            _InterlockedIncrement(&currentThread->NumberOfActiveChildren);
+             LOG("Thread %s created [ID=%d] is the Xth thread created by thread [ID=%d] on CPU [%d]\n", 
+                 pThread->Name, pThread->Id, currentThread->Id, pThread->CreationCpuApicId);
+             // Threads 3. adding child to list
+             InsertTailList(&currentThread->ChildList, &pThread->ChildList);
+        }
+        else
+        {
+            LOG("Thread %s created [ID=%d] is the Xth thread created by the kernel on CPU [%d]\n", 
+                pThread->Id, pThread->CreationCpuApicId);
+        }
         ThreadUnblock(pThread);
     }
 
@@ -426,8 +470,8 @@ ThreadTick(
     PPCPU pCpu = GetCurrentPcpu();
     PTHREAD pThread = GetCurrentThread();
 
-    ASSERT( INTR_OFF == CpuIntrGetState());
-    ASSERT( NULL != pCpu);
+    ASSERT(INTR_OFF == CpuIntrGetState());
+    ASSERT(NULL != pCpu);
 
     LOG_TRACE_THREAD("Thread tick\n");
     if (pCpu->ThreadData.IdleThread == pThread)
@@ -438,9 +482,17 @@ ThreadTick(
     {
         pCpu->ThreadData.KernelTicks++;
     }
-    pThread->TickCountCompleted++;
 
-    if (++pCpu->ThreadData.RunningThreadTicks >= THREAD_TIME_SLICE)
+    // Check if the thread has completed 16 ticks
+    if (pThread->TickCountCompleted == 16)
+    {
+        pThread->CurrentTimeQuantum = 2;
+    }
+
+    pThread->TickCountCompleted++;
+    pThread->TotalTimeQuantum++; // Increment the total time quantum. not necessary if we have the TIckCountCompleted variable
+
+    if (++pCpu->ThreadData.RunningThreadTicks >= pThread->CurrentTimeQuantum)
     {
         LOG_TRACE_THREAD("Will yield on return\n");
         pCpu->ThreadData.YieldOnInterruptReturn = TRUE;
@@ -475,10 +527,15 @@ ThreadYield(
         NOT_REACHED;
     }
 
+    // Threads 2. Increment TimesYielded field
+    pThread->TimesYielded++;
+
     LockAcquire(&m_threadSystemData.ReadyThreadsLock, &dummyState);
     if (pThread != pCpu->ThreadData.IdleThread)
     {
         InsertTailList(&m_threadSystemData.ReadyThreadsList, &pThread->ReadyList);
+        //LOG("INCREMENTING READY THREADS, current number: %u\n", m_threadSystemData.ReadyThreads);
+        m_threadSystemData.ReadyThreads++;
     }
     if (!bForcedYield)
     {
@@ -513,6 +570,12 @@ ThreadBlock(
 
     pCurrentThread->TickCountEarly++;
     pCurrentThread->State = ThreadStateBlocked;
+
+    // Threads 4.
+    LockAcquire(&m_threadSystemData.BlockedThreadsLock, &oldState);
+    m_threadSystemData.BlockedThreads++;
+    LockRelease(&m_threadSystemData.BlockedThreadsLock, oldState);
+
     LockAcquire(&m_threadSystemData.ReadyThreadsLock, &oldState);
     _ThreadSchedule();
     ASSERT( !LockIsOwner(&m_threadSystemData.ReadyThreadsLock));
@@ -534,6 +597,7 @@ ThreadUnblock(
 
     LockAcquire(&m_threadSystemData.ReadyThreadsLock, &dummyState);
     InsertTailList(&m_threadSystemData.ReadyThreadsList, &Thread->ReadyList);
+    m_threadSystemData.ReadyThreads++;
     Thread->State = ThreadStateReady;
     LockRelease(&m_threadSystemData.ReadyThreadsLock, dummyState );
     LockRelease(&Thread->BlockLock, oldState);
@@ -545,11 +609,26 @@ ThreadExit(
     )
 {
     PTHREAD pThread;
+    PTHREAD pParent;
     INTR_STATE oldState;
 
     LOG_FUNC_START_THREAD;
 
     pThread = GetCurrentThread();
+    pParent = _ThreadReferenceByTid(pThread->ParentTid);
+
+    if(!pParent)
+    {
+        LOG("Thread [ID=%d] created on CPU [ID=%d] is finishing on CPU [ID=%d], while it's parent thread is already destroyed!\n"
+        , pThread->Id, pThread->CreationCpuApicId, GetCurrentPcpu()->ApicId);
+    }
+    else
+    {
+        LOG("Thread [ID=%d] created on CPU [ID=%d] is finishing on CPU [ID=%d], while it's parent thread [ID=%d] is still alive!\n"
+        , pThread->Id, pThread->CreationCpuApicId, GetCurrentPcpu()->ApicId, pParent->Id);
+        _InterlockedDecrement(&pParent->NumberOfActiveChildren);
+        _ThreadDereference(pParent);
+    }
 
     CpuIntrDisable();
 
@@ -560,10 +639,16 @@ ThreadExit(
 
     pThread->State = ThreadStateDying;
     pThread->ExitStatus = ExitStatus;
+
+    // Threads 2. print
+    LOG("Thread with ID 0x%x yielded %u times\n", pThread->Id, pThread->TimesYielded);
+
+    // 4. Round robin print
+    LOG("Thread [ID=%d] was allocated %d time quanta\n", pThread->Id, pThread->TickCountCompleted);
     ExEventSignal(&pThread->TerminationEvt);
 
     ProcessNotifyThreadTermination(pThread);
-
+    
     LockAcquire(&m_threadSystemData.ReadyThreadsLock, &oldState);
     _ThreadSchedule();
     NOT_REACHED;
@@ -661,6 +746,87 @@ ThreadSetPriority(
     ASSERT(ThreadPriorityLowest <= NewPriority && NewPriority <= ThreadPriorityMaximum);
 
     GetCurrentThread()->Priority = NewPriority;
+}
+
+// prob02
+DWORD
+ThreadGetCount(
+
+    )
+{
+    INTR_STATE oldState;
+    LockAcquire(&m_threadSystemData.CountThreadsLock, &oldState);
+    DWORD count = m_threadSystemData.CountThreads;
+    LockRelease(&m_threadSystemData.CountThreadsLock, oldState);
+    
+    return count;
+}
+
+// Threads 4. count ready
+DWORD
+ThreadGetReadyCount(
+
+)
+{
+    INTR_STATE oldState;
+    LockAcquire(&m_threadSystemData.ReadyThreadsLock, &oldState);
+    DWORD count = m_threadSystemData.ReadyThreads;
+    LockRelease(&m_threadSystemData.ReadyThreadsLock, oldState);
+
+    return count;
+}
+
+// Threads 4. count blocked
+DWORD
+ThreadGetBlockedCount(
+
+)
+{
+    INTR_STATE oldState;
+    LockAcquire(&m_threadSystemData.BlockedThreadsLock, &oldState);
+    DWORD count = m_threadSystemData.BlockedThreads;
+    LockRelease(&m_threadSystemData.BlockedThreadsLock, oldState);
+
+    return count;
+}
+
+// prob04
+TID
+ThreadGetParentID(
+    IN_OPT  PTHREAD             Thread
+    )
+{
+    PTHREAD pThread = (NULL != Thread) ? Thread : GetCurrentThread();
+
+    return (NULL != pThread) ? pThread->ParentTid : 0;
+}
+
+// get thread by id. 3. threads
+PTHREAD _ThreadReferenceByTid (
+    IN TID ThreadId 
+    )
+{
+    INTR_STATE oldState;
+    LockAcquire(&m_threadSystemData.AllThreadsLock, &oldState);
+
+    PLIST_ENTRY pListEntry;
+    PTHREAD thread;
+
+    pListEntry = m_threadSystemData.AllThreadsList.Flink;
+    while (pListEntry != &m_threadSystemData.AllThreadsList)
+    {
+        thread = CONTAINING_RECORD(pListEntry, THREAD, AllList );
+        if(thread->Id == ThreadId)
+        {
+            _ThreadReference(thread);
+            LockRelease(&m_threadSystemData.AllThreadsLock, oldState );
+            return thread;
+        }
+        pListEntry = pListEntry->Flink;
+    }
+
+    LockRelease(&m_threadSystemData.AllThreadsLock, oldState );
+    return NULL;
 }
 
 STATUS
@@ -792,13 +958,45 @@ _ThreadInit(
 
         pThread->Id = _ThreadSystemGetNextTid();
         pThread->State = ThreadStateBlocked;
+        // Threads 1.
+        LOG("Thread %s created with ID 0x%x\n", pThread->Name, pThread->Id);
         pThread->Priority = Priority;
+
+        // Threads 3. initialize ChildList
+        InitializeListHead(&pThread->ChildList);
+
+        // 3. thread identifiers
+        pThread->CreationCpuApicId = GetCurrentPcpu()->ApicId;
+
+        // 3. account for number of threads created
+        PTHREAD currentThread = GetCurrentThread();
+        if (currentThread != NULL)
+        {
+            pThread -> ParentTid = currentThread->Id;
+        }
+        else
+        {
+            pThread -> ParentTid = 0; // assign 0 when the thread is created by the kernel
+        }
+        pThread->NumberOfActiveChildren = 0;
+
+        // Threads 2. initialize TimesYielded with 0 when creating the thread.
+        pThread->TimesYielded = 0;
+
+        // 4. Round robin
+        pThread->TotalTimeQuantum = 0;
+        pThread->CurrentTimeQuantum = 4;
 
         LockInit(&pThread->BlockLock);
 
         LockAcquire(&m_threadSystemData.AllThreadsLock, &oldIntrState);
         InsertTailList(&m_threadSystemData.AllThreadsList, &pThread->AllList);
         LockRelease(&m_threadSystemData.AllThreadsLock, oldIntrState);
+
+        // prob02
+        LockAcquire(&m_threadSystemData.CountThreadsLock, &oldIntrState);
+        m_threadSystemData.CountThreads++;
+        LockRelease(&m_threadSystemData.CountThreadsLock, oldIntrState);
     }
     __finally
     {
@@ -950,7 +1148,7 @@ _ThreadSetupMainThreadUserStack(
     ASSERT(ResultingStack != NULL);
     ASSERT(Process != NULL);
 
-    *ResultingStack = InitialStack;
+    *ResultingStack = (PVOID)PtrDiff(InitialStack, SHADOW_STACK_SIZE + sizeof(PVOID));
 
     return STATUS_SUCCESS;
 }
@@ -1117,6 +1315,8 @@ _ThreadGetReadyThread(
     pNextThread = NULL;
 
     pEntry = RemoveHeadList(&m_threadSystemData.ReadyThreadsList);
+    // Threads 4.
+    m_threadSystemData.ReadyThreads--;
     if (pEntry == &m_threadSystemData.ReadyThreadsList)
     {
         pNextThread = GetCurrentPcpu()->ThreadData.IdleThread;
@@ -1190,6 +1390,11 @@ _ThreadDestroy(
     LockAcquire(&m_threadSystemData.AllThreadsLock, &oldState);
     RemoveEntryList(&pThread->AllList);
     LockRelease(&m_threadSystemData.AllThreadsLock, oldState);
+
+    // prob02
+    LockAcquire(&m_threadSystemData.CountThreadsLock, &oldState);
+    m_threadSystemData.CountThreads--;
+    LockRelease(&m_threadSystemData.CountThreadsLock, oldState);
 
     // This must be done before removing the thread from the process list, else
     // this may be the last thread and the process VAS will be freed by the time

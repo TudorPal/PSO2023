@@ -60,6 +60,32 @@ SyscallThreadGetTid(
     OUT     TID*                    ThreadId
     );
 
+// SyscallGetThreadPriority
+//******************************************************************************
+// Function:     SyscallGetThreadPriority
+// Description:  Returns the thread priority for the current Thread
+// Returns:      STATUS
+// Parameter:    IN_OPT UM_HANDLE ThreadHandle
+// Parameter:    OUT TID * ThreadId
+//******************************************************************************
+STATUS
+SyscallGetThreadPriority(
+    OUT BYTE* ThreadPriority
+);
+
+// SyscallSetThreadPriority
+//******************************************************************************
+// Function:     SyscallSetThreadPriority
+// Description:  Sets the thread priority for the current Thread
+// Returns:      STATUS
+// Parameter:    IN_OPT UM_HANDLE ThreadHandle
+// Parameter:    OUT TID * ThreadId
+//******************************************************************************
+STATUS
+SyscallSetThreadPriority(
+    IN BYTE ThreadPriority
+);
+
 // SyscallIdThreadWaitForTermination
 //******************************************************************************
 // Function:     SyscallThreadWaitForTermination
@@ -149,6 +175,22 @@ SyscallProcessGetPid(
     OUT     PID*                    ProcessId
     );
 
+// SyscallIdProcessGetName
+//******************************************************************************
+// Function:     SyscallProcessGetName
+// Description:  Retrieves the process name for ProcessHandle. If the
+//               handle value is UM_INVALID_HANDLE_VALUE the PID for the
+//               executing process will be returned.
+// Returns:      STATUS
+// Parameter:    OUT char* ProcessName,
+// Parameter:    IN QWORD ProcessNameMaxLen
+//******************************************************************************
+STATUS
+SyscallProcessGetName(
+    OUT char* ProcessName,
+    IN QWORD ProcessNameMaxLen
+);
+
 // SyscallIdProcessWaitForTermination
 //******************************************************************************
 // Function:     SyscallProcessWaitForTermination
@@ -175,6 +217,44 @@ STATUS
 SyscallProcessCloseHandle(
     IN      UM_HANDLE               ProcessHandle
     );
+
+// SyscallGetCurrentCPUID
+//******************************************************************************
+// Function:     SyscallGetCurrentCPUID
+// Description:  Returns the current CPUID
+// Returns:      STATUS
+// Parameter:    OUT BYTE* CpuId
+//******************************************************************************
+STATUS
+SyscallGetCurrentCPUID(
+    OUT BYTE* CpuId
+);
+
+// SyscallGetNumberOfThreadsForCurrentProcess
+//******************************************************************************
+// Function:     SyscallGetNumberOfThreadsForCurrentProcess
+// Description:  Returns the number of threads running on the current process
+// Returns:      STATUS
+// Parameter:    OUT DWORD* ThreadNo
+//******************************************************************************
+STATUS
+SyscallGetNumberOfThreadsForCurrentProcess(
+    OUT DWORD* ThreadNo
+);
+
+// SyscallGetCPUUtilization
+//******************************************************************************
+// Function:     SyscallGetCPUUtilization
+// Description:  Returns the utilization for 1/all cpus based on number of ticks
+// Returns:      STATUS
+// Parameter:    IN_OPT BYTE* CpuId
+// Parameter:    OUT BYTE* Utilization
+//******************************************************************************
+STATUS
+SyscallGetCPUUtilization(
+    IN_OPT BYTE* CpuId,
+    OUT BYTE* Utilization
+);
 
 // SyscallIdVirtualAlloc
 //******************************************************************************
@@ -223,6 +303,22 @@ SyscallVirtualFree(
                 QWORD                   Size,
     IN          VMM_FREE_TYPE           FreeType
     );
+
+// SyscallMemset
+//******************************************************************************
+// Function:     SyscallMemset
+// Description:  Does a memset on a requested virtual address.
+// Returns:      STATUS
+// Parameter:    OUT_WRITES PBYTE Address
+// Parameter:    IN DWORD BytesToWrite
+// Parameter:    IN Byte ValueToWrite
+//******************************************************************************
+STATUS
+SyscallMemset(
+    OUT_WRITES(BytesToWrite)    PBYTE   Address,
+    IN                          DWORD   BytesToWrite,
+    IN                          BYTE    ValueToWrite
+);
 
 // SyscallIdFileCreate
 //******************************************************************************

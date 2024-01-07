@@ -59,6 +59,23 @@ SystemPreinit(
     ProcessSystemPreinit();
 }
 
+static
+STATUS
+(__cdecl _HelloIpi)(
+    IN_OPT PVOID Context
+    )
+{
+    /*Modify the code such that the function which displays the 'Hello' message will be executed only on odd-indexed processors. E.g: if you have 8 CPUs in the system, CPUs 0, 2, 4, and 6 will NOT display a message, but 1, 3, 5 and 7 will.*/
+    UNREFERENCED_PARAMETER(Context);
+
+    if (CpuGetApicId() % 2 != 0)
+    {
+        return STATUS_SUCCESS;
+    }
+    LOGP("Hello\n");
+    return STATUS_SUCCESS;
+}
+
 STATUS
 SystemInit(
     IN  ASM_PARAMETERS*     Parameters
@@ -70,7 +87,7 @@ SystemInit(
     status = STATUS_SUCCESS;
     pCpu = NULL;
 
-    LogSystemInit(LogLevelInfo,
+    LogSystemInit(LogLevelError, // lab03, prob01
                   LogComponentInterrupt | LogComponentIo | LogComponentAcpi,
                   TRUE
                   );
@@ -255,6 +272,11 @@ SystemInit(
 
     LOGL("ThreadSystemInitIdleForCurrentCPU succeeded\n");
 
+    LogSystemInit(LogLevelInfo, // lab03, prob02
+        LogComponentInterrupt | LogComponentIo | LogComponentAcpi,
+        TRUE
+    );
+
     status = AcpiInterfaceLateInit();
     if (!SUCCEEDED(status))
     {
@@ -304,15 +326,28 @@ SystemInit(
 
     LOGL("IOMU late initialization successfully completed\n");
 
-    status = NetworkStackInit(FALSE);
+    /*status = NetworkStackInit(FALSE);
     if (!SUCCEEDED(status))
     {
         LOG_FUNC_ERROR("NetworkStackInit", status);
         return status;
-    }
+    }*/
 
     LOGL("Network stack successfully initialized\n");
-
+    //LogSystemInit(LogLevelTrace, // lab03, prob03
+    //    LogComponentThread,
+    //    TRUE
+    //);
+    LogSystemInit(LogLevelTrace, // lab05, prob01
+        LogComponentUserMode,
+        TRUE
+    );
+    status = SmpSendGenericIpi(_HelloIpi, NULL, NULL, NULL, TRUE);
+    if (!SUCCEEDED(status))
+    {
+        LOG_FUNC_ERROR("SmpSendGenericIpi", status);
+        return status;
+    }
     return status;
 }
 

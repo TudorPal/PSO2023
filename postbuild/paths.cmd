@@ -12,6 +12,7 @@ set PATH_TO_VM_DISK=__EMPTY__
 set PATH_TO_VM_TOOLS=__EMPTY__
 set VOL_MOUNT_LETTER=__EMPTY__
 
+if _%COMPUTERNAME%_==_DESKTOP-29S2BNN_ goto config_DESKTOP-29S2BNN
 if _%COMPUTERNAME%_==_AGURZOU-DEV-PC_ goto config_AGURZOU-DEV
 if _%COMPUTERNAME%_==_ALEX-PC_ goto config_ALEX-PC
 if _%COMPUTERNAME%_==_AGURZOU-LPT_ goto config_AGURZOU-LPT
@@ -67,6 +68,17 @@ set PXE_PATH2=pxe-GRZ
 
 set BOCHS_PATH="c:\Program Files (x86)\Bochs-2.6.8\"
 
+goto end
+
+:config_DESKTOP-29S2BNN
+
+SET VOL_MOUNT_LETTER="Q:"
+SET PATH_TO_VM_TOOLS="C:\Program Files (x86)\VMware\VMware Virtual Disk Development Kit"
+SET PATH_TO_VM_DISK="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmdk"
+SET PATH_TO_VM_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.vmx"
+SET PATH_TO_VIX_TOOLS="D:\programe\VMware.Workstation.Pro.16.2.0+VMware.Workstation.16.2.0.Player"
+SET PXE_PATH="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\PXE"
+SET PATH_TO_LOG_FILE="D:\facultate\An4sem1\PSO\HAL9000\HAL9000\VM\HAL9000_VM\HAL9000.log"
 goto end
 
 :end
